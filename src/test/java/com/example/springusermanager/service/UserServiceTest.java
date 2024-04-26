@@ -4,22 +4,28 @@ import com.example.springusermanager.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ExtendWith({MockitoExtension.class, SpringExtension.class})
 public class UserServiceTest {
 
-    @InjectMocks
+    @Autowired
     private UserService userService;
 
     private User user;
+
+    @Value("${user.minimum-age}")
+    private int minimumAge;
 
     @BeforeEach
     void setUp() {
@@ -30,6 +36,7 @@ public class UserServiceTest {
         user.setBirthDate(LocalDate.now().minusYears(25));
         user.setAddress("123 Fake Street");
         user.setPhoneNumber("555-1234");
+        userService.deleteUser(user.getEmail());
     }
 
     @Test
@@ -42,8 +49,7 @@ public class UserServiceTest {
     @Test
     void createUserUnderageUserThrowsException() {
         User underageUser = new User();
-        underageUser.setBirthDate(LocalDate.now().minusYears(16));
-        ReflectionTestUtils.setField(userService, "minimumAge", 18);
+        underageUser.setBirthDate(LocalDate.now().minusYears(minimumAge - 1));
         assertThrows(IllegalArgumentException.class, () -> userService.createUser(underageUser));
     }
 

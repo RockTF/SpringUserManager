@@ -1,18 +1,11 @@
 package com.example.springusermanager.model;
 
-import com.example.springusermanager.controller.UserController;
-import com.example.springusermanager.service.IUserService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class User {
     @Email(message = "Invalid email format")
