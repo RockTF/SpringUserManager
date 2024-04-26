@@ -1,19 +1,20 @@
 package com.example.springusermanager.controller;
 
+import com.example.springusermanager.service.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.springusermanager.service.UserService;
 import com.example.springusermanager.model.User;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
+    private final IUserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(IUserService userService) {
         this.userService = userService;
     }
 
@@ -23,8 +24,17 @@ public class UserController {
         return ResponseEntity.ok(createdUser);
     }
 
+    @PatchMapping("/{email}")
+    public ResponseEntity<User> partiallyUpdateUser(@PathVariable String email, @RequestBody Map<String, Object> updates) {
+        User updatedUser = userService.partiallyUpdateUser(email, updates);
+        if (updatedUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updatedUser);
+    }
+
     @PutMapping("/{email}")
-    public ResponseEntity<User> updateUser(@PathVariable String email, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable String email, @RequestBody @Valid User user) {
         User updatedUser = userService.updateUser(email, user);
         if (updatedUser == null) {
             return ResponseEntity.notFound().build();

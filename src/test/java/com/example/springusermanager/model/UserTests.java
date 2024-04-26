@@ -4,30 +4,56 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserTests {
-
     @Test
-    void testUserModel() {
+    void testUser() {
+        // Given
+        String email = "test@example.com";
+        String firstName = "John";
+        String lastName = "Doe";
+        LocalDate birthDate = LocalDate.of(1990, 1, 1);
+        String address = "Address";
+        String phoneNumber = "1234567890";
 
-        User user = new User(
-                "user@example.com",
-                "John",
-                "Doe",
-                LocalDate.of(1990, 1, 1),
-                "123 Fake St",
-                "555-5555"
-        );
+        User user = new User();
 
-        assertAll("user",
-                () -> assertEquals("user@example.com", user.getEmail()),
-                () -> assertEquals("John", user.getFirstName()),
-                () -> assertEquals("Doe", user.getLastName()),
-                () -> assertEquals(LocalDate.of(1990, 1, 1), user.getBirthDate()),
-                () -> assertEquals("123 Fake St", user.getAddress()),
-                () -> assertEquals("555-5555", user.getPhoneNumber())
-        );
+        // When
+        user.setEmail(email);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setBirthDate(birthDate);
+        user.setAddress(address);
+        user.setPhoneNumber(phoneNumber);
+
+        // Then
+        assertEquals(email, user.getEmail());
+        assertEquals(firstName, user.getFirstName());
+        assertEquals(lastName, user.getLastName());
+        assertEquals(birthDate, user.getBirthDate());
+        assertEquals(address, user.getAddress());
+        assertEquals(phoneNumber, user.getPhoneNumber());
+    }
+    @Test
+    void testUserConstructor() {
+        // Given
+        String email = "test@example.com";
+        String firstName = "John";
+        String lastName = "Doe";
+        LocalDate birthDate = LocalDate.of(1990, 1, 1);
+        String address = "Address";
+        String phoneNumber = "1234567890";
+
+        // When
+        User user = new User(email, firstName, lastName, birthDate, address, phoneNumber);
+
+        // Then
+        assertEquals(email, user.getEmail());
+        assertEquals(firstName, user.getFirstName());
+        assertEquals(lastName, user.getLastName());
+        assertEquals(birthDate, user.getBirthDate());
+        assertEquals(address, user.getAddress());
+        assertEquals(phoneNumber, user.getPhoneNumber());
     }
 }
