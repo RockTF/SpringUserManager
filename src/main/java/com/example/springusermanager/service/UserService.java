@@ -32,23 +32,12 @@ public class UserService implements IUserService {
         return findUserByEmail(email).map(user -> {
             updates.forEach((key, value) -> {
                 switch (key) {
-                    case "firstName":
-                        user.setFirstName((String) value);
-                        break;
-                    case "lastName":
-                        user.setLastName((String) value);
-                        break;
-                    case "birthDate":
-                        user.setBirthDate((LocalDate) value);
-                        break;
-                    case "address":
-                        user.setAddress((String) value);
-                        break;
-                    case "phoneNumber":
-                        user.setPhoneNumber((String) value);
-                        break;
-                    default:
-                        break;
+                    case "firstName": user.setFirstName((String) value); break;
+                    case "lastName": user.setLastName((String) value); break;
+                    case "birthDate": user.setBirthDate((LocalDate) value); break;
+                    case "address": user.setAddress((String) value); break;
+                    case "phoneNumber": user.setPhoneNumber((String) value); break;
+                    default: break;
                 }
             });
             return user;
@@ -56,13 +45,13 @@ public class UserService implements IUserService {
     }
 
     public User updateUser(String email, User updatedUser) {
-        return findUserByEmail(email).map(user -> {
-            user.setFirstName(Optional.ofNullable(updatedUser.getFirstName()).orElse(user.getFirstName()));
-            user.setLastName(Optional.ofNullable(updatedUser.getLastName()).orElse(user.getLastName()));
-            user.setBirthDate(Optional.ofNullable(updatedUser.getBirthDate()).orElse(user.getBirthDate()));
-            user.setAddress(Optional.ofNullable(updatedUser.getAddress()).orElse(user.getAddress()));
-            user.setPhoneNumber(Optional.ofNullable(updatedUser.getPhoneNumber()).orElse(user.getPhoneNumber()));
-            return user;
+        return findUserByEmail(email).map(existingUser -> {
+            existingUser.setFirstName(getUpdatedValue(updatedUser.getFirstName(), existingUser.getFirstName()));
+            existingUser.setLastName(getUpdatedValue(updatedUser.getLastName(), existingUser.getLastName()));
+            existingUser.setBirthDate(getUpdatedValue(updatedUser.getBirthDate(), existingUser.getBirthDate()));
+            existingUser.setAddress(getUpdatedValue(updatedUser.getAddress(), existingUser.getAddress()));
+            existingUser.setPhoneNumber(getUpdatedValue(updatedUser.getPhoneNumber(), existingUser.getPhoneNumber()));
+            return existingUser;
         }).orElse(null);
     }
 
@@ -84,5 +73,9 @@ public class UserService implements IUserService {
         return users.stream()
                 .filter(u -> u.getEmail().equals(email))
                 .findFirst();
+    }
+
+    private <T> T getUpdatedValue(T newValue, T oldValue) {
+        return Optional.ofNullable(newValue).orElse(oldValue);
     }
 }
