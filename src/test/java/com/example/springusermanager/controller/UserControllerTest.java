@@ -2,144 +2,118 @@ package com.example.springusermanager.controller;
 
 import com.example.springusermanager.model.User;
 import com.example.springusermanager.service.IUserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(UserController.class)
 class UserControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private IUserService userService;
 
-    @InjectMocks
-    private UserController userController;
+    private static final String BASE_URL = "/users";
+    private static final String TEST_EMAIL = "test@example.com";
+    private static final String FIRST_NAME = "John";
+    private static final String LAST_NAME = "Doe";
+    private static final LocalDate BIRTH_DATE = LocalDate.of(1990, 1, 1);
+    private static final String ADDRESS = "123 Main St";
+    private static final String PHONE_NUMBER = "123-456-7890";
 
-    @Test
-    void testCreateUser() {
-        // Given
-        User user = new User(
-                "test@example.com",
-                "John",
-                "Doe",
-                LocalDate.of(1990, 1, 1),
-                "Address",
-                "1234567890"
-        );
+    private User user;
 
-        // When
-        when(userService.createUser(user)).thenReturn(user);
-
-        ResponseEntity<User> responseEntity = userController.createUser(user);
-
-        // Then
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(user, responseEntity.getBody());
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email(TEST_EMAIL)
+                .firstName(FIRST_NAME)
+                .lastName(LAST_NAME)
+                .birthDate(BIRTH_DATE)
+                .address(ADDRESS)
+                .phoneNumber(PHONE_NUMBER)
+                .build();
     }
 
     @Test
-    void testPartiallyUpdateUser() {
-        // Given
-        String email = "test@example.com";
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("firstName", "John");
-        User updatedUser = new User(
-                email,
-                "John",
-                "Doe",
-                LocalDate.of(1990, 1, 1),
-                "Address",
-                "1234567890"
-        );
+    void testCreateUser() throws Exception {
+        when(userService.createUser(any(User.class))).thenReturn(user);
 
-        // When
-        when(userService.partiallyUpdateUser(email, updates)).thenReturn(updatedUser);
-
-        ResponseEntity<User> responseEntity = userController.partiallyUpdateUser(email, updates);
-
-        // Then
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(updatedUser, responseEntity.getBody());
+        mockMvc.perform(post(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userToJson(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", is(TEST_EMAIL)));
     }
 
     @Test
-    void testUpdateUser() {
-        // Given
-        String email = "test@example.com";
-        User user = new User(
-                email,
-                "John",
-                "Doe",
-                LocalDate.of(1990, 1, 1),
-                "Address",
-                "1234567890"
-        );
+    void testPartiallyUpdateUser() throws Exception {
+        when(userService.partiallyUpdateUser(anyString(), any(Map.class))).thenReturn(user);
 
-        // When
-        when(userService.updateUser(email, user)).thenReturn(user);
-
-        ResponseEntity<User> responseEntity = userController.updateUser(email, user);
-
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(user, responseEntity.getBody());
+        mockMvc.perform(patch(BASE_URL + "/" + TEST_EMAIL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"firstName\":\"Jane\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName", is(FIRST_NAME)));
     }
 
     @Test
-    void testDeleteUser() {
-        // Given
-        String email = "test@example.com";
+    void testUpdateUser() throws Exception {
+        when(userService.updateUser(anyString(), any(User.class))).thenReturn(user);
 
-        // When
-        ResponseEntity<Void> responseEntity = userController.deleteUser(email);
-
-        // Then
-        verify(userService, times(1)).deleteUser(email);
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        mockMvc.perform(put(BASE_URL + "/" + TEST_EMAIL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userToJson(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", is(TEST_EMAIL)));
     }
 
     @Test
-    void testSearchUsersByBirthDateRange() {
-        // Given
-        LocalDate from = LocalDate.of(1990, 1, 1);
-        LocalDate to = LocalDate.of(2000, 12, 31);
-        List<User> userList = List.of(
-                new User(
-                        "test1@example.com",
-                        "John",
-                        "Doe",
-                        LocalDate.of(1995, 5, 5),
-                        "Address1",
-                        "1234567890"
-                ),
-                new User(
-                        "test2@example.com",
-                        "Jane",
-                        "Doe",
-                        LocalDate.of(1998, 7, 15),
-                        "Address2",
-                        "1234567890"
-                )
+    void testDeleteUser() throws Exception {
+        Mockito.doNothing().when(userService).deleteUser(anyString());
+
+        mockMvc.perform(delete(BASE_URL + "/" + TEST_EMAIL))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testSearchUsersByBirthDateRange() throws Exception {
+        when(userService.searchUsersByBirthDateRange(any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(user));
+
+        mockMvc.perform(get(BASE_URL + "/search")
+                        .param("from", "1980-01-01")
+                        .param("to", "2000-01-01"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].email", is(TEST_EMAIL)));
+    }
+
+    private String userToJson(User user) {
+        return String.format(
+                "{\"email\":\"%s\",\"firstName\":\"%s\",\"lastName\":\"%s\",\"birthDate\":\"%s\",\"address\":\"%s\",\"phoneNumber\":\"%s\"}",
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getBirthDate().toString(),
+                user.getAddress(),
+                user.getPhoneNumber()
         );
-
-        // When
-        when(userService.searchUsersByBirthDateRange(from, to)).thenReturn(userList);
-
-        ResponseEntity<List<User>> responseEntity = userController.searchUsersByBirthDateRange(from, to);
-
-        // Then
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(userList, responseEntity.getBody());
     }
 }
